@@ -63,7 +63,7 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package -DskipTests'
-
+    
     # -----------------------------
     # Docker Build & Push
     # -----------------------------
