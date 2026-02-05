@@ -1,19 +1,123 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+- main
 
 pool:
-  name: POC-9
+  name: POC-9   # your self-hosted agent pool
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  imageName: devsecops-poc-app
+  dockerUsername: <YOUR_DOCKERHUB_USERNAME>
+  containerPort: 8080
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+
+# =================================================
+# CI STAGE – COMPILE, TEST, CODE ANALYSIS
+# =================================================
+- stage: CI
+  displayName: "CI - Compile, Test, Code Quality"
+  jobs:
+  - job: Maven_CI
+    displayName: "Maven + Sonar + Dependency Check"
+    steps:
+
+    - checkout: self
+
+    # -----------------------------
+    # Maven Compile & Test
+    # -----------------------------
+    - task: Maven@3
+      displayName: "Maven Compile & Test"
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean compile test'
+        jdkVersionOption: '1.17'
+
+    # -----------------------------
+    # SonarCloud Scan (CLI)
+    # -----------------------------
+    - script: |
+        sonar-scanner \
+          -Dsonar.projectKey=devsecops-poc \
+          -Dsonar.organization=<YOUR_SONARCLOUD_ORG_KEY> \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=$(SONAR_TOKEN)
+      displayName: "SonarCloud Scan (CLI)"
+
+    # -----------------------------
+    # OWASP Dependency Check
+    # -----------------------------
+    - script: |
+        mvn org.owasp:dependency-check-maven:check
+      displayName: "OWASP Dependency Check"
+
+# =================================================
+# BUILD STAGE – PACKAGE & DOCKER IMAGE
+# =================================================
+- stage: Build_Image
+  displayName: "Build & Push Docker Image"
+  dependsOn: CI
+  jobs:
+  - job: Docker_Build
+    displayName: "Docker Build & Push"
+    steps:
+
+    # -----------------------------
+    # Maven Package
+    # -----------------------------
+    - task: Maven@3
+      displayName: "Maven Package"
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package -DskipTests'
+
+    # -----------------------------
+    # Docker Build & Push
+    # -----------------------------
+    - task: Docker@2
+      displayName: "Docker Build & Push to Docker Hub"
+      inputs:
+        containerRegistry: 'dockerhub-sc'
+        repository: '$(dockerUsername)/$(imageName)'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          latest
+          $(Build.BuildId)
+
+# =================================================
+# SECURITY STAGE – CONTAINER SCAN
+# =================================================
+- stage: Security
+  displayName: "Security - Trivy Scan"
+  dependsOn: Build_Image
+  jobs:
+  - job: Trivy_Scan
+    displayName: "Trivy Image Scan"
+    steps:
+
+    - script: |
+        trivy image $(dockerUsername)/$(imageName):latest \
+          --severity HIGH,CRITICAL \
+          --exit-code 1
+      displayName: "Trivy Scan (Fail on High/Critical)"
+
+# =================================================
+# DEPLOY STAGE – CONTAINER DEPLOYMENT
+# =================================================
+- stage: Deploy
+  displayName: "Deploy Application"
+  dependsOn: Security
+  jobs:
+  - job: Deploy_App
+    displayName: "Deploy Docker Container"
+    steps:
+
+    - script: |
+        docker stop devsecops-poc || true
+        docker rm devsecops-poc || true
+        docker run -d \
+          --name devsecops-poc \
+          -p $(containerPort):$(containerPort) \
+          $(dockerUsername)/$(imageName):latest
+      displayName: "Run Docker Container"
