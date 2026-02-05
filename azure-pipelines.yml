@@ -38,10 +38,10 @@ stages:
     # -----------------------------
     - script: |
         sonar-scanner \
-          -Dsonar.projectKey=devsecops-poc \
-          -Dsonar.organization=<YOUR_SONARCLOUD_ORG_KEY> \
+          -Dsonar.projectKey=poc-9 \
+          -Dsonar.organization=banita1985 \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$(SONAR_TOKEN)
+          -Dsonar.login=$(sonar-token)
       displayName: "SonarCloud Scan (CLI)"
 
     # -----------------------------
