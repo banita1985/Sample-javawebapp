@@ -4,9 +4,7 @@ trigger:
 pool:
   name: POC-9   # your self-hosted agent pool
 
-variables:
-  dockerUsername: banitap1985   
-  imageName: poc9-app
+
 stages:
 
 # =================================================
