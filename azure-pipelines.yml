@@ -61,7 +61,15 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package -DskipTests'
-    
+
+    # -----------------------------
+    # DEBUG STEP (ADD THIS HERE)
+    # -----------------------------
+    - script: |
+        echo "DEBUG dockerUsername = $(dockerUsername)"
+        echo "DEBUG imageName = $(imageName)"
+      displayName: "DEBUG: Print Docker variables"
+
     # -----------------------------
     # Docker Build & Push
     # -----------------------------
@@ -75,6 +83,7 @@ stages:
         tags: |
           latest
           $(Build.BuildId)
+
 
 # =================================================
 # SECURITY STAGE – CONTAINER SCAN
