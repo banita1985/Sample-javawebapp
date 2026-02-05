@@ -31,7 +31,7 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean compile test'
-        jdkVersionOption: '1.17'
+        
 
     # -----------------------------
     # SonarCloud Scan (CLI)
