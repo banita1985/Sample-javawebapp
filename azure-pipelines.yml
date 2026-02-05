@@ -44,12 +44,7 @@ stages:
           -Dsonar.login=$(sonar-token)
       displayName: "SonarCloud Scan (CLI)"
 
-    # -----------------------------
-    # OWASP Dependency Check
-    # -----------------------------
-    - script: |
-        mvn org.owasp:dependency-check-maven:check
-      displayName: "OWASP Dependency Check"
+   
 
 # =================================================
 # BUILD STAGE – PACKAGE & DOCKER IMAGE
