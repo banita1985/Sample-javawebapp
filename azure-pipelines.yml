@@ -4,11 +4,6 @@ trigger:
 pool:
   name: POC-9   # your self-hosted agent pool
 
-variables:
-  imageName: poc9-app
-  dockerUsername: <YOUR_DOCKERHUB_USERNAME>
-  containerPort: 8080
-
 stages:
 
 # =================================================
