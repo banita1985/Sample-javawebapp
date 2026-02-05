@@ -4,7 +4,8 @@ trigger:
 pool:
   name: POC-9   # your self-hosted agent pool
 
-
+variables:
+  imageName: poc9-app
 stages:
 
 # =================================================
