@@ -64,14 +64,6 @@ stages:
         goals: 'clean package -DskipTests'
 
     # -----------------------------
-    # DEBUG STEP (ADD THIS HERE)
-    # -----------------------------
-    - script: |
-        echo "DEBUG dockerUsername = $(dockerUsername)"
-        echo "DEBUG imageName = $(imageName)"
-      displayName: "DEBUG: Print Docker variables"
-
-    # -----------------------------
     # Docker Build & Push
     # -----------------------------
     - task: Docker@2
@@ -115,10 +107,9 @@ stages:
     steps:
 
     - script: |
-        docker stop devsecops-poc || true
-        docker rm devsecops-poc || true
+        docker rm -f poc-9-Azure || true
         docker run -d \
-          --name devsecops-poc \
-          -p $(containerPort):$(containerPort) \
+          --name poc-9-Azure \
+          -p 8080:8080 \
           $(dockerUsername)/$(imageName):latest
       displayName: "Run Docker Container"
