@@ -2,10 +2,9 @@ trigger:
 - main
 
 pool:
-  name: POC-9   # your self-hosted agent pool
-
-variables:
-  imageName: poc9-app
+  vmImage: 'ubuntu-latest'
+#variables:
+ # imageName: poc9-app
 stages:
 
 # =================================================
